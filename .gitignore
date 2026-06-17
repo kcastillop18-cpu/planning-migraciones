@@ -1,0 +1,10 @@
+# ===== DATOS REALES — NUNCA subir =====
+data/
+sample-data.real.js
+*.xlsx
+*.xls
+*.csv
+
+# temporales / render de pruebas
+*.err
+render*.html

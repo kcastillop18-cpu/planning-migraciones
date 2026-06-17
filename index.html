@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Planning del Supervisor · Migraciones Entel</title>
+<script src="xlsx.full.min.js"></script>
+<style>
+  :root{
+    --azul:#0033a0; --azul2:#0a57d0; --celeste:#e8f0ff; --gris:#5b6472;
+    --bg:#f4f6fb; --card:#ffffff; --linea:#e3e8f1; --ok:#16a34a; --warn:#f59e0b; --bad:#dc2626;
+    --q1:#16a34a; --q2:#84cc16; --q3:#f59e0b; --q4:#dc2626;
+    --coral:#0d9488; --extra:#7c3aed;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",system-ui,Arial,sans-serif;background:var(--bg);color:#1a2233}
+  header.app{background:linear-gradient(95deg,var(--azul),var(--azul2));color:#fff;padding:14px 22px;display:flex;align-items:center;gap:14px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+  header.app h1{font-size:18px;margin:0;font-weight:600}
+  header.app .sub{font-size:12px;opacity:.85}
+  .logo{width:34px;height:34px;border-radius:8px;background:#fff;color:var(--azul);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px}
+  .wrap{max-width:1320px;margin:0 auto;padding:18px}
+  .card{background:var(--card);border:1px solid var(--linea);border-radius:14px;padding:16px;box-shadow:0 1px 3px rgba(16,24,40,.04)}
+  .muted{color:var(--gris)}
+  /* Upload */
+  #loader{max-width:760px;margin:40px auto}
+  .drop{border:2px dashed #b9c6e0;border-radius:16px;padding:36px;text-align:center;background:#fbfdff;transition:.15s}
+  .drop.drag{background:var(--celeste);border-color:var(--azul2)}
+  .btn{background:var(--azul);color:#fff;border:none;border-radius:10px;padding:10px 18px;font-size:14px;cursor:pointer;font-weight:600}
+  .btn:hover{background:var(--azul2)}
+  .btn.ghost{background:#fff;color:var(--azul);border:1px solid var(--azul)}
+  .btn.sm{padding:6px 12px;font-size:13px}
+  /* Controls */
+  .controls{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-end;margin-bottom:16px}
+  .monform{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+  .dropdown{position:relative}
+  .ddbtn{padding:8px 10px;border:1px solid #cbd5e6;border-radius:9px;background:#fff;font-size:14px;cursor:pointer;min-width:150px;text-align:left}
+  .ddpanel{position:absolute;z-index:30;top:calc(100% + 4px);left:0;background:#fff;border:1px solid #cbd5e6;border-radius:10px;box-shadow:0 6px 22px rgba(0,0,0,.14);padding:8px;max-height:280px;overflow:auto;min-width:200px}
+  .ddpanel label{display:flex;align-items:center;gap:7px;font-size:13px;padding:4px 6px;border-radius:6px;cursor:pointer;white-space:nowrap}
+  .ddpanel label:hover{background:#f3f6fc}
+  .ddpanel .ddtools{display:flex;gap:10px;margin-bottom:6px;border-bottom:1px solid var(--linea);padding-bottom:6px;font-size:12px}
+  .ddpanel .ddtools a{color:var(--azul);text-decoration:none;font-weight:600}
+  .ctrl{display:flex;flex-direction:column;gap:4px}
+  .ctrl label{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--gris);font-weight:600}
+  .ctrl select,.ctrl input{padding:8px 10px;border:1px solid #cbd5e6;border-radius:9px;font-size:14px;background:#fff;min-width:120px}
+  /* KPIs */
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px;margin-bottom:16px}
+  .kpi{background:var(--card);border:1px solid var(--linea);border-radius:14px;padding:14px}
+  .kpi .v{font-size:28px;font-weight:800;color:var(--azul)}
+  .kpi .l{font-size:12px;color:var(--gris);font-weight:600}
+  .kpi .x{font-size:11px;margin-top:3px}
+  .grid2{display:grid;grid-template-columns:1.4fr 1fr;gap:16px;margin-bottom:16px}
+  @media(max-width:980px){.grid2{grid-template-columns:1fr}}
+  h2.sec{font-size:15px;margin:0 0 10px;display:flex;align-items:center;gap:8px}
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:8px 9px;text-align:left;border-bottom:1px solid var(--linea);white-space:nowrap}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.03em;color:var(--gris);cursor:pointer;user-select:none;background:#fafbfe;position:sticky;top:0}
+  tbody tr:hover{background:#f7faff}
+  .tag{display:inline-block;padding:2px 8px;border-radius:20px;font-size:11px;font-weight:700;color:#fff}
+  .pill{font-weight:700}
+  .bar-wrap{background:#eef2f9;border-radius:6px;height:8px;overflow:hidden;min-width:60px}
+  .bar-fill{height:100%;border-radius:6px}
+  .scroll{max-height:460px;overflow:auto;border-radius:10px;border:1px solid var(--linea)}
+  /* quartile cards */
+  .qgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  @media(max-width:760px){.qgrid{grid-template-columns:repeat(2,1fr)}}
+  .qcard{border-radius:14px;padding:16px;color:#fff}
+  .qcard .qhead{font-size:13px;font-weight:700;opacity:.95;letter-spacing:.02em}
+  .qcard .qbig{font-size:34px;font-weight:800;line-height:1.1;margin:2px 0 10px}
+  .qcard .qbig span{font-size:13px;font-weight:500;opacity:.9}
+  .qcard .qrow{display:flex;justify-content:space-between;font-size:12px;padding:3px 0;border-top:1px solid rgba(255,255,255,.25)}
+  .qcard .qbar{margin-top:10px;background:rgba(255,255,255,.3);border-radius:6px;height:7px;overflow:hidden}
+  .qcard .qbar>div{height:100%;background:#fff;border-radius:6px}
+  .qcard .qnames{list-style:none;margin:10px 0 0;padding:8px 0 0;border-top:1px solid rgba(255,255,255,.25);font-size:11.5px;max-height:148px;overflow:auto}
+  .qcard .qnames li{display:flex;justify-content:space-between;gap:8px;padding:2px 0}
+  .qcard .qnames li.muted2{opacity:.8;justify-content:flex-start}
+  /* chart */
+  svg{width:100%;height:auto;display:block}
+  .legend{font-size:11px;color:var(--gris);display:flex;gap:14px;flex-wrap:wrap;margin-top:6px}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:middle}
+  /* tasks */
+  .task{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--linea)}
+  .task.done span.t{color:#1a2233}
+  .task input[type=checkbox]{width:18px;height:18px}
+  .task .meta{margin-left:auto;font-size:12px;color:var(--gris)}
+  .addtask{display:flex;gap:8px;margin-top:10px}
+  .addtask input{flex:1;padding:8px;border:1px solid #cbd5e6;border-radius:9px}
+  .estados{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+  .estados label{display:flex;align-items:center;gap:5px;font-size:12px;background:#f3f6fc;border:1px solid var(--linea);padding:4px 8px;border-radius:8px;cursor:pointer}
+  .hidden{display:none!important}
+  .spinner{width:34px;height:34px;border:4px solid #cdd9ef;border-top-color:var(--azul);border-radius:50%;animation:sp 1s linear infinite;margin:14px auto}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .foot{font-size:11px;color:var(--gris);text-align:center;margin:24px 0}
+  .chip{font-size:11px;background:var(--celeste);color:var(--azul);padding:3px 9px;border-radius:20px;font-weight:700}
+</style>
+</head>
+<body>
+<header class="app">
+  <div class="logo">E</div>
+  <div>
+    <h1>Planning del Supervisor · Migraciones</h1>
+    <div class="sub">Ventas en línea hora a hora · Proyección · Cuartiles · Cross-selling · Tareas de calidad</div>
+  </div>
+  <div style="margin-left:auto" id="hdrInfo" class="sub"></div>
+</header>
+
+<!-- ============ PANTALLA DE CARGA ============ -->
+<div class="wrap" id="loader">
+  <div class="card">
+    <h2 class="sec">📥 Cargar el volcado del CRM</h2>
+    <p class="muted" style="margin-top:0">Arrastra aquí el Excel/CSV que descargas del CRM. Todo el cálculo ocurre en tu computadora; <b>ningún dato se sube a internet</b>.</p>
+    <div class="drop" id="drop">
+      <div style="font-size:40px">🗂️</div>
+      <p><b>Arrastra el archivo</b> o</p>
+      <input type="file" id="file" accept=".xlsx,.xls,.csv" class="hidden" />
+      <button class="btn" onclick="document.getElementById('file').click()">Elegir archivo</button>
+      <div id="sampleBox" class="hidden" style="margin-top:14px">
+        <span class="muted">¿Solo quieres ver cómo se ve?</span>
+        <button class="btn ghost sm" id="btnSample">Ver demo con datos de ejemplo</button>
+      </div>
+      <div id="loadStatus" style="margin-top:14px"></div>
+    </div>
+  </div>
+  <p class="foot">Hecho para el equipo de operaciones · Prototipo</p>
+</div>
+
+<!-- ============ SELECCIÓN DE PERFIL ============ -->
+<div class="wrap hidden" id="rolescreen">
+  <div class="card" style="max-width:620px;margin:46px auto">
+    <h2 class="sec" style="justify-content:center">👤 ¿Quién ingresa?</h2>
+    <p class="muted" style="text-align:center;margin-top:0">El <b>supervisor</b> ve solo a su equipo. La <b>Jefatura</b> ve todos los equipos y puede editar objetivos.</p>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;margin-top:12px">
+      <div class="card" style="flex:1;min-width:240px;text-align:center">
+        <h3 style="margin:0 0 10px">🧑‍💼 Supervisor</h3>
+        <select id="roleSup" style="width:100%;padding:9px;border:1px solid #cbd5e6;border-radius:9px;font-size:14px"></select>
+        <button class="btn" id="enterSup" style="margin-top:12px;width:100%">Entrar como Supervisor</button>
+      </div>
+      <div class="card" style="flex:1;min-width:240px;text-align:center">
+        <h3 style="margin:0 0 10px">👑 Jefatura</h3>
+        <p class="muted" style="font-size:12px;margin:0 0 8px">Acceso a todos los equipos y a editar objetivos. Protegido con PIN.</p>
+        <button class="btn" id="enterJefe" style="margin-top:12px;width:100%">Entrar como Jefatura</button>
+      </div>
+    </div>
+    <div id="roleMsg" style="color:var(--bad);font-size:12px;margin-top:12px;text-align:center"></div>
+  </div>
+</div>
+
+<!-- ============ TABLERO ============ -->
+<div class="wrap hidden" id="dash">
+  <div class="card" style="margin-bottom:16px">
+    <div class="controls">
+      <div class="ctrl"><label>Fechas</label>
+        <div class="dropdown" id="fFechaDrop">
+          <button type="button" class="ddbtn" id="fFechaBtn">— fechas —</button>
+          <div class="ddpanel hidden" id="fFechaPanel"></div>
+        </div>
+      </div>
+      <div class="ctrl"><label>Supervisor</label><select id="fSup"></select></div>
+      <div class="ctrl"><label>Hora de corte (ahora)</label><select id="fCorte"></select></div>
+      <div class="ctrl"><label>Franja inicio</label><input type="number" id="fIni" min="0" max="23" value="9" style="width:80px"></div>
+      <div class="ctrl"><label>Franja fin</label><input type="number" id="fFin" min="1" max="24" value="18" style="width:80px"></div>
+      <div class="ctrl"><label>Horas jornada</label><input type="number" id="fJornada" min="1" max="24" value="8" style="width:80px"></div>
+      <div class="ctrl"><label>Meta diaria x agente</label><input type="number" id="fMeta" min="1" value="6" style="width:90px"></div>
+      <div class="ctrl"><label>&nbsp;</label><button class="btn ghost sm" id="btnJefa">🔑 Modo Jefa</button></div>
+      <div class="ctrl"><label>&nbsp;</label><button class="btn ghost sm" id="btnReset">Cambiar archivo</button></div>
+    </div>
+    <details>
+      <summary class="muted" style="cursor:pointer;font-size:13px">⚙️ ¿Qué estados cuentan como venta válida?</summary>
+      <div class="estados" id="estadosBox"></div>
+    </details>
+    <p class="muted" style="font-size:11px;margin:6px 0 0">Clasificación: solo <b>RV_Tipo_Ofrecimiento = CROSS-SELLING</b> cuenta como cross-selling; el resto (REGULAR, multilínea, etc.) es <b>migración</b>. Se procesa solo la campaña <b>MIGRACION REGULAR</b>.</p>
+  </div>
+
+  <div class="kpis" id="kpis"></div>
+
+  <div class="card" id="spdCard" style="margin-bottom:16px">
+    <h2 class="sec">📈 Productividad · SPD (ventas por agente por día)</h2>
+    <div class="kpis" id="spdKpis" style="margin-bottom:0"></div>
+  </div>
+
+  <div class="card" id="objCard" style="margin-bottom:16px">
+    <h2 class="sec">🎯 Objetivos del día por agente <span id="objLockState"></span></h2>
+    <div id="objBody"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h2 class="sec">⏱️ Ventas hora a hora <span class="chip" id="chipEquipo"></span></h2>
+    <div id="chart"></div>
+    <div class="legend">
+      <span><i style="background:var(--azul2)"></i>Ventas en jornada</span>
+      <span><i style="background:var(--coral)"></i>Después de 18:00</span>
+      <span><i style="background:var(--extra)"></i>Antes de la franja</span>
+      <span><i style="background:#f59e0b"></i>Acumulado</span>
+      <span><i style="background:#cbd5e6"></i>Hora futura</span>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h2 class="sec">🏅 Cuartilización del equipo</h2>
+    <div class="qgrid" id="quartiles"></div>
+    <p class="muted" style="font-size:11px;margin:10px 0 0">Q1 = mejor 25% del equipo · Q4 = último 25% (según ventas válidas del día). El detalle de quién está en cada cuartil se ve en la tabla de agentes (columna <b>Q</b>).</p>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h2 class="sec">👥 Detalle por agente <span class="muted" style="font-weight:400;font-size:12px">(clic en encabezado para ordenar)</span></h2>
+    <div class="scroll">
+      <table id="tabla">
+        <thead><tr id="thead"></tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h2 class="sec">📊 Resumen dinámico · Supervisor × Hora <span id="pivotInfo" class="muted" style="font-weight:400;font-size:12px"></span></h2>
+    <div class="scroll" style="max-height:440px">
+      <table id="pivot"><thead id="pivotHead"></thead><tbody id="pivotBody"></tbody></table>
+    </div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2 class="sec">🔁 Cross-selling del día</h2>
+      <div id="crossKpi" style="margin-bottom:8px"></div>
+      <div class="scroll" style="max-height:300px"><table><thead><tr id="crossHead"></tr></thead><tbody id="crossBody"></tbody></table></div>
+    </div>
+    <div class="card">
+      <h2 class="sec">✅ Tareas del supervisor</h2>
+      <div id="taskProgress" style="margin-bottom:8px"></div>
+      <div id="taskList"></div>
+      <div class="addtask">
+        <input id="newTask" placeholder="Nueva tarea (ej. Monitorear 5 llamadas de Juan)" />
+        <button class="btn sm" id="addTaskBtn">Agregar</button>
+      </div>
+      <p class="muted" style="font-size:11px">Al marcar una tarea se registra la <b>hora</b> y queda <b>bloqueada</b> (no se puede desmarcar). Solo Jefatura puede revertir. Se guarda por supervisor y fecha.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px">
+    <h2 class="sec">🎧 Monitoreo de calidad de llamadas <span id="monState"></span></h2>
+    <p class="muted" style="margin-top:0">Registra cada llamada monitoreada. Al dar <b>✓ Registrar</b>, el registro queda <b>fijo y no editable</b> (con fecha y hora de captura).</p>
+    <div class="monform" id="monForm">
+      <div class="ctrl"><label>DNI Asesor</label><input id="mDniAsesor" list="dlAsesores" placeholder="DNI del asesor"></div>
+      <div class="ctrl"><label>Fecha</label><input type="date" id="mFecha"></div>
+      <div class="ctrl"><label>N° de llamada</label><input id="mNroLlamada" placeholder="N° de llamada"></div>
+      <div class="ctrl"><label>DNI Cliente</label><input id="mDniCliente" placeholder="DNI del cliente"></div>
+      <div class="ctrl"><label>Migra</label><select id="mMigra"><option>Sí</option><option>No</option></select></div>
+      <div class="ctrl"><label>Ofrec. Cross</label><select id="mCross"><option>No</option><option>Sí</option></select></div>
+      <div class="ctrl"><label>&nbsp;</label><button class="btn" id="mAddBtn">✓ Registrar</button></div>
+      <datalist id="dlAsesores"></datalist>
+    </div>
+    <div id="monMsg" style="font-size:12px;margin:6px 0;color:var(--bad)"></div>
+    <div class="scroll" style="max-height:320px;margin-top:8px">
+      <table><thead><tr><th>#</th><th>DNI Asesor</th><th>Asesor</th><th>Fecha</th><th>N° llamada</th><th>DNI Cliente</th><th>Migra</th><th>Ofrec. Cross</th><th>Registrado</th><th>Estado</th></tr></thead>
+      <tbody id="monBody"></tbody></table>
+    </div>
+  </div>
+
+  <p class="foot">Prototipo · Planning del Supervisor de Migraciones · los datos no salen de tu equipo</p>
+</div>
+
+<script src="sample-data.js" onerror="window.__noSample=true"></script>
+<script src="app.js"></script>
+</body>
+</html>

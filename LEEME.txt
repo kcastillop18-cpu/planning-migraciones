@@ -1,0 +1,150 @@
+========================================================
+  PLANNING DEL SUPERVISOR · MIGRACIONES  (Prototipo)
+========================================================
+
+QUÉ ES
+------
+Una página web que corre en TU computadora (no sube nada a internet).
+El supervisor abre la página, carga el volcado del CRM y ve al instante:
+  (La web usa SOLO las filas de la campaña MIGRACION REGULAR del archivo,
+   columna DE_Campana_Netcall; el resto de campañas se ignora.)
+  • Ventas en línea hora a hora del equipo
+  • Proyección de cierre del día por agente (según su ritmo actual)
+  • Cuartilización del equipo (Q1 mejores ... Q4 cola)
+  • Migraciones vs Cross-selling (clasificación por RV_Tipo_Ofrecimiento):
+    solo CROSS-SELLING = cross; todo lo demás (REGULAR, multilínea…) = migración.
+  • OBJETIVOS del día por agente, que se BLOQUEAN (no manipulables)
+  • MONITOREO de calidad: registra DNI Asesor, Fecha, N° llamada,
+    DNI Cliente; al dar ✓ queda FIJO y no editable
+  • Sus tareas (checklist con avance)
+
+OBJETIVOS DEL DÍA (anti-manipulación)
+-------------------------------------
+El supervisor, a primera hora, ingresa el objetivo de cada agente (varía
+por agente/skill) y pulsa "Guardar y bloquear". Desde ahí quedan FIJOS con
+fecha y hora de registro y no se pueden editar ese día, para que nadie baje
+la meta y aparezca un "cumplimiento" que no es real. El % de avance y el
+cumplimiento (✔/✗) de cada agente se calculan contra ese objetivo bloqueado.
+
+MONITOREO DE CALIDAD
+--------------------
+Cada llamada monitoreada se registra con DNI Asesor, Fecha, N° de llamada,
+DNI Cliente, MIGRA (Sí/No) y OFREC. CROSS (Sí/No). Al pulsar "✓ Registrar"
+el renglón queda bloqueado (🔒 Fijo) con su hora de captura; no se puede
+modificar ni borrar.
+
+PERFILES (Supervisor / Jefatura)
+--------------------------------
+Al cargar el archivo aparece la pantalla "¿Quién ingresa?":
+  • SUPERVISOR: elige su nombre y entra; ve SOLO a su equipo (el filtro de
+    supervisor queda fijo y bloqueado, sin "Todos" ni otros equipos) y NO
+    puede editar objetivos ni desmarcar tareas.
+  • JEFATURA: entra con PIN (la primera vez lo creas) y ve TODOS los equipos
+    (incluido "Todos"), puede editar objetivos bloqueados (queda "Editado por
+    Jefa" con hora) y desmarcar tareas.
+El botón "🔄 Cambiar perfil" (arriba) regresa a esta pantalla para cambiar de
+usuario. El supervisor no conoce el PIN, así que no puede entrar como Jefatura.
+
+SPD (productividad)
+-------------------
+  • SPD del día      = ventas del día / agentes activos del día.
+  • SPD acumulado    = ventas del período / (agente-día trabajados).
+  • Acumulado período= total de ventas válidas del equipo en el archivo.
+Todo respeta el supervisor y los estados válidos que tengas seleccionados.
+
+JORNADA BASE vs HORAS EXTRA (comparación justa)
+-----------------------------------------------
+Controles "Franja inicio" (09), "Franja fin" (18) y "Horas jornada" (8).
+  • VENTAS EN JORNADA = ventas dentro de la franja 09–18 (base comparable).
+  • HORAS EXTRA       = ventas fuera de la franja (antes de 09 o después de 18).
+El SPD, los cuartiles, el % de meta y la proyección se calculan SOLO con la
+jornada base, para que un agente de 8 h y otro con 2 h extra se comparen en
+igualdad. Las horas extra se muestran aparte (columna "Extra", KPI y barra
+morada en el gráfico) como crédito adicional, sin inflar el SPD.
+
+FECHAS MULTI-SELECCIÓN + RESUMEN DINÁMICO
+-----------------------------------------
+El filtro "Fechas" permite marcar varias fechas a la vez (atajos "Todas" /
+"Solo la última"). Las vistas analíticas (ventas, SPD, cuartiles, gráfico y
+el cuadro dinámico) suman el rango elegido. Los módulos operativos del día
+(Objetivos, Tareas, Monitoreo) aplican a la ÚLTIMA fecha seleccionada.
+
+CUADRO DINÁMICO (Supervisor × Hora)
+-----------------------------------
+Tabla tipo pivote: filas = supervisor, columnas = hora, celdas = cantidad de
+ventas válidas, con fila y columna de totales. Las horas posteriores a las
+18:00 salen en VERDE CORAL (igual que en el gráfico y la columna "Extra").
+
+CROSS-SELLING DETALLADO
+-----------------------
+El panel de cross-selling muestra, por agente, cuántas fueron Venta Regular,
+Portabilidad u Otro (según RV_Tipo_Venta de cada cross).
+
+SPH (Sales Per Hour) y PROYECCIÓN
+---------------------------------
+La franja 09–18 son 9 horas de reloj, pero 1 es refrigerio = 8 horas
+efectivas. Por eso:
+  • SPH (columna en el detalle) = ventas de jornada ÷ horas EFECTIVAS (sobre 8 h).
+  • Proyección = SPH × 8  =  "si sigue a ese ritmo, cuánto cierra en su jornada".
+Solo cuenta ventas de la franja base; nunca proyecta por debajo de lo vendido.
+
+TAREAS / FEEDBACK CON HORA
+--------------------------
+Al marcar una tarea se graba la HORA y queda bloqueada (no se puede desmarcar).
+Así queda evidencia de cuándo se hizo el monitoreo/feedback. Solo Jefatura
+(Modo Jefa) puede revertir o eliminar una tarea.
+
+NOTA sobre el bloqueo (importante)
+----------------------------------
+En este prototipo el bloqueo se guarda en el navegador (localStorage): evita
+la manipulación casual y deja constancia de fecha/hora. Para un bloqueo
+100% a prueba de manipulación (que ni siquiera el supervisor pueda borrar)
+se necesita la versión en servidor con usuarios y permisos, donde solo TÚ
+(jefatura) puedas desbloquear, con bitácora de auditoría.
+
+
+CÓMO ABRIRLA
+------------
+1. Entra a la carpeta:  C:\Users\kcast\planning-app
+2. Doble clic en:       index.html
+   (se abre en tu navegador; no necesita internet ni instalar nada)
+
+
+CÓMO USARLA EN EL DÍA A DÍA
+---------------------------
+1. Descarga del CRM el volcado de ventas (Excel .xlsx o .csv).
+   >> Recomendado: descarga el del DÍA (no el del mes completo).
+      Un archivo de 1 día abre al instante; el del mes pesa y tarda más.
+2. En la web, arrastra el archivo (o "Elegir archivo").
+3. Arriba eliges: Fecha, tu Supervisor, y la "Hora de corte (ahora)".
+   - La "hora de corte" simula la hora actual: con ella se calcula la
+     proyección de cierre. Muévela para ver cómo proyecta a distintas horas.
+4. Ajustes opcionales (engranajes):
+   - Qué estados cuentan como venta válida (por defecto: VALIDA).
+   - Qué cuenta como cross-selling (multilínea / etiqueta / producto adic.).
+5. La meta diaria por agente la pones en el campo "Meta diaria x agente".
+
+
+BOTÓN "VER DEMO"
+----------------
+Trae datos REALES de ejemplo (últimos 5 días de tu propio archivo) para
+mostrar la herramienta sin tener que cargar nada. Úsalo para presentaciones.
+
+
+NOTAS
+-----
+• Las tareas del supervisor se guardan en el navegador, por supervisor y fecha.
+• Ningún dato del cliente sale de tu equipo: todo se calcula localmente.
+• Columnas del CRM que usa: Nombre_Vendedor, Supervisor_Vendedor, Fecha Venta,
+  Hora_Venta, VBO_Estado_Venta_BO, RV_Tipo_Venta, RV_Tipo_Ofrecimiento,
+  RV_Tipo_Producto, RV_Linea_Migrar, RV_Cant_Familia_Adicional, etc.
+
+
+ARCHIVOS (para quien dé mantenimiento)
+--------------------------------------
+  index.html ......... la página
+  app.js ............. toda la lógica de cálculo
+  xlsx.full.min.js ... lee Excel en el navegador (librería SheetJS, offline)
+  sample-data.js ..... datos del botón "Ver demo"
+  extract-fast.ps1 ... (opcional) regenera el set de demo desde un .xlsx grande
+  make-sample.ps1 .... (opcional) arma sample-data.js desde data/slim.csv
