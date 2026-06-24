@@ -109,10 +109,15 @@ function handleFile(file){
   reader.onload = e=>{
     try{
       const data = new Uint8Array(e.target.result);
-      const wb = XLSX.read(data,{type:'array',cellDates:false,raw:true});
-      const ws = wb.Sheets[wb.SheetNames[0]];
+      // 'dense:true' permite leer archivos grandes (el modo normal deja la hoja sin cargar)
+      let wb = XLSX.read(data,{type:'array',cellDates:false,raw:true,dense:true});
+      let ws = wb.Sheets[wb.SheetNames[0]];
+      if(!ws){
+        setStatus('<span style="color:var(--bad)">No pude cargar la hoja de datos. El archivo puede ser demasiado grande para el navegador; intenta con el export de un día o de un rango más corto.</span>');
+        return;
+      }
       const rows = XLSX.utils.sheet_to_json(ws,{header:1,defval:'',raw:true});
-      if(!rows.length){ setStatus('<span style="color:var(--bad)">El archivo está vacío.</span>'); return; }
+      if(!rows.length){ setStatus('<span style="color:var(--bad)">La hoja "'+wb.SheetNames[0]+'" no tiene filas de datos.</span>'); return; }
       const headers = rows[0].map(clean);
       // índice de cada campo
       const idx = {};
