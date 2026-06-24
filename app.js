@@ -32,6 +32,7 @@ let ADMIN = false;     // true cuando el perfil es Jefatura (puede desbloquear/e
 let ROLE = null;       // 'sup' | 'jefe'
 let SUPNAME = null;    // nombre del supervisor cuando ROLE==='sup'
 let APPNAME = '';      // nombre del archivo / origen
+let TOTALRAW = 0;      // filas totales antes de filtrar por campaña
 let DASH_WIRED = false, ROLE_WIRED = false;
 // crossRules: qué cuenta como cross-selling (configurable en la UI)
 let STATE = { validEstados:null, sortKey:'ventas', sortDir:-1, pivotKey:'tot', pivotDir:-1 };
@@ -178,6 +179,7 @@ function normalizeRecord(r){
 // =========================================================
 function afterLoad(name){
   // Tomar SOLO la campaña MIGRACION REGULAR (DE_Campana_Netcall)
+  TOTALRAW = ALL.length;
   ALL = ALL.filter(r=> clean(r.campana).toUpperCase()==='MIGRACION REGULAR');
   if(!ALL.length){
     setStatus('<span style="color:var(--bad)">El archivo no tiene filas de la campaña <b>MIGRACION REGULAR</b> (columna DE_Campana_Netcall). Revisa que sea el volcado correcto.</span>');
@@ -218,7 +220,8 @@ function initDashboard(){
   $('loader').classList.add('hidden');
   $('dash').classList.remove('hidden');
   const scope = ROLE==='jefe' ? '👑 Jefatura · todos los equipos' : '🧑‍💼 Supervisor · '+SUPNAME;
-  $('hdrInfo').textContent = APPNAME + ' · ' + ALL.length.toLocaleString('es-PE') + ' registros · ' + scope;
+  const exc = TOTALRAW>ALL.length ? ' (se excluyeron '+(TOTALRAW-ALL.length).toLocaleString('es-PE')+' de otras campañas)' : '';
+  $('hdrInfo').textContent = APPNAME + ' · ' + ALL.length.toLocaleString('es-PE') + ' de ' + TOTALRAW.toLocaleString('es-PE') + ' filas · solo MIGRACION REGULAR' + exc + ' · ' + scope;
 
   // Fechas — multi-selección
   STATE.fechas = null;
